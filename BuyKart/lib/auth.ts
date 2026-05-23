@@ -1,13 +1,11 @@
+import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import dbConnect from './dbConnect'
 import UserModel from './models/UserModel'
-import NextAuth from 'next-auth'
 
-export const config = {
-  trustHost: true,
-  // next-auth v5 prefers AUTH_SECRET; fall back to NEXTAUTH_SECRET for compatibility
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       credentials: {
@@ -16,14 +14,16 @@ export const config = {
       },
       async authorize(credentials) {
         await dbConnect()
-        if (credentials == null) return null
+        if (!credentials) return null
         const user = await UserModel.findOne({ email: credentials.email })
-        if (user) {
-          const isMatch = await bcrypt.compare(
-            credentials.password as string,
-            user.password
-          )
-          if (isMatch) return user
+        if (user && bcrypt.compareSync(credentials.password, user.password)) {
+          return {
+            id: user._id.toString(),
+            _id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            isAdmin: user.isAdmin,
+          }
         }
         return null
       },
@@ -35,34 +35,29 @@ export const config = {
     error: '/signin',
   },
   callbacks: {
-    async jwt({ user, trigger, session, token }: any) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.user = {
-          _id: user._id,
+          _id: (user as any)._id,
           email: user.email,
           name: user.name,
-          isAdmin: user.isAdmin,
+          isAdmin: (user as any).isAdmin,
         }
       }
       if (trigger === 'update' && session) {
         token.user = {
-          ...token.user,
+          ...(token.user as any),
           email: session.user.email,
           name: session.user.name,
         }
       }
       return token
     },
-    session: async ({ session, token }: any) => {
-      if (token) session.user = token.user
+    async session({ session, token }) {
+      if (token) {
+        session.user = token.user as any
+      }
       return session
     },
   },
 }
-
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth(config)

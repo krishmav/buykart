@@ -1,20 +1,17 @@
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import dbConnect from '@/lib/dbConnect'
 import OrderModel from '@/lib/models/OrderModel'
-import { auth } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
-export const GET = auth(async (req: any) => {
-  if (!req.auth) {
-    return Response.json(
-      { message: 'unauthorized' },
-      {
-        status: 401,
-      }
-    )
+export async function GET() {
+  const session = await getServerSession(authOptions)
+  if (!session) {
+    return Response.json({ message: 'unauthorized' }, { status: 401 })
   }
-  const { user } = req.auth
+  const user = session.user as any
   await dbConnect()
   const orders = await OrderModel.find({ user: user._id })
   return Response.json(orders)
-}) as any
+}

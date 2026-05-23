@@ -1,4 +1,5 @@
-import { auth } from '@/lib/auth'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import dbConnect from '@/lib/dbConnect'
 import OrderModel, { OrderItem } from '@/lib/models/OrderModel'
 import ProductModel from '@/lib/models/ProductModel'
@@ -7,48 +8,33 @@ import { round2 } from '@/lib/utils'
 export const dynamic = 'force-dynamic'
 
 const calcPrices = (orderItems: OrderItem[]) => {
-  // Calculate the items price
-  const itemsPrice = round2(
-    orderItems.reduce((acc, item) => acc + item.price * item.qty, 0)
-  )
-  // Calculate the shipping price
+  const itemsPrice = round2(orderItems.reduce((acc, item) => acc + item.price * item.qty, 0))
   const shippingPrice = round2(itemsPrice > 100 ? 0 : 10)
-  // Calculate the tax price
   const taxPrice = round2(Number((0.15 * itemsPrice).toFixed(2)))
-  // Calculate the total price
   const totalPrice = round2(itemsPrice + shippingPrice + taxPrice)
   return { itemsPrice, shippingPrice, taxPrice, totalPrice }
 }
 
-export const POST = auth(async (req: any) => {
-  if (!req.auth) {
-    return Response.json(
-      { message: 'unauthorized' },
-      {
-        status: 401,
-      }
-    )
+export async function POST(req: Request) {
+  const session = await getServerSession(authOptions)
+  if (!session) {
+    return Response.json({ message: 'unauthorized' }, { status: 401 })
   }
-  const { user } = req.auth
+  const user = session.user as any
   try {
     const payload = await req.json()
     await dbConnect()
     const dbProductPrices = await ProductModel.find(
-      {
-        _id: { $in: payload.items.map((x: { _id: string }) => x._id) },
-      },
+      { _id: { $in: payload.items.map((x: any) => x._id) } },
       'price'
     )
-    const dbOrderItems = payload.items.map((x: { _id: string }) => ({
+    const dbOrderItems = payload.items.map((x: any) => ({
       ...x,
       product: x._id,
-      price: dbProductPrices.find((x) => x._id === x._id).price,
+      price: dbProductPrices.find((p: any) => p._id.toString() === x._id)?.price ?? x.price,
       _id: undefined,
     }))
-
-    const { itemsPrice, taxPrice, shippingPrice, totalPrice } =
-      calcPrices(dbOrderItems)
-
+    const { itemsPrice, taxPrice, shippingPrice, totalPrice } = calcPrices(dbOrderItems)
     const newOrder = new OrderModel({
       items: dbOrderItems,
       itemsPrice,
@@ -59,20 +45,12 @@ export const POST = auth(async (req: any) => {
       paymentMethod: payload.paymentMethod,
       user: user._id,
     })
-
     const createdOrder = await newOrder.save()
     return Response.json(
       { message: 'Order has been created', order: createdOrder },
-      {
-        status: 201,
-      }
+      { status: 201 }
     )
   } catch (err: any) {
-    return Response.json(
-      { message: err.message },
-      {
-        status: 500,
-      }
-    )
+    return Response.json({ message: err.message }, { status: 500 })
   }
-}) as any
+}
