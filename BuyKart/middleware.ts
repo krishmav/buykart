@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const secret = (process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET)!
+  const secret = (process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET) as string
   const secureCookie = request.url.startsWith('https://')
   const cookieName = secureCookie
     ? '__Secure-authjs.session-token'
