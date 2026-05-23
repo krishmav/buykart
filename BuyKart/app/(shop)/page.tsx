@@ -12,7 +12,7 @@ export default async function HomePage() {
 
   try {
     await dbConnect()
-    products = (await ProductModel.find({}).lean()) as Product[]
+    products = (await ProductModel.find({}).lean()) as unknown as Product[]
   } catch {
     error = "Failed to load products. Please seed the database first."
   }
