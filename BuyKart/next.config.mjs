@@ -1,10 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    // Run middleware on Node.js runtime instead of Edge
-    // This fixes "ReferenceError: __dirname is not defined" on Vercel
-    serverComponentsExternalPackages: ['mongoose', 'bcryptjs'],
-  },
+  serverExternalPackages: ['mongoose', 'bcryptjs'],
   images: {
     remotePatterns: [],
   },
