@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ['mongoose', 'bcryptjs'],
+  // Correct key for Next.js 14 — keeps mongoose/bcrypt out of Edge bundles
+  experimental: {
+    serverComponentsExternalPackages: ['mongoose', 'bcryptjs'],
+  },
   images: {
     remotePatterns: [],
   },
