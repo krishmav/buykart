@@ -5,8 +5,8 @@ import UserModel from './models/UserModel'
 import NextAuth from 'next-auth'
 
 export const config = {
-  // ← This is the critical fix for Vercel: trusts the host header
   trustHost: true,
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       credentials: {
@@ -16,17 +16,13 @@ export const config = {
       async authorize(credentials) {
         await dbConnect()
         if (credentials == null) return null
-
         const user = await UserModel.findOne({ email: credentials.email })
-
         if (user) {
           const isMatch = await bcrypt.compare(
             credentials.password as string,
             user.password
           )
-          if (isMatch) {
-            return user
-          }
+          if (isMatch) return user
         }
         return null
       },
@@ -38,6 +34,19 @@ export const config = {
     error: '/signin',
   },
   callbacks: {
+    authorized({ request, auth }: any) {
+      const protectedPaths = [
+        /\/shipping/,
+        /\/payment/,
+        /\/place-order/,
+        /\/profile/,
+        /\/order\/(.*)/,
+        /\/admin/,
+      ]
+      const { pathname } = request.nextUrl
+      if (protectedPaths.some((p) => p.test(pathname))) return !!auth
+      return true
+    },
     async jwt({ user, trigger, session, token }: any) {
       if (user) {
         token.user = {
@@ -57,9 +66,7 @@ export const config = {
       return token
     },
     session: async ({ session, token }: any) => {
-      if (token) {
-        session.user = token.user
-      }
+      if (token) session.user = token.user
       return session
     },
   },
