@@ -1,20 +1,20 @@
-import { NextAuthOptions } from 'next-auth'
-import CredentialsProvider from 'next-auth/providers/credentials'
-import bcrypt from 'bcryptjs'
-import dbConnect from './dbConnect'
-import UserModel from './models/UserModel'
+import { NextAuthOptions } from "next-auth"
+import CredentialsProvider from "next-auth/providers/credentials"
+import bcrypt from "bcryptjs"
+import dbConnect from "./dbConnect"
+import UserModel from "./models/UserModel"
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       credentials: {
-        email: { type: 'email' },
-        password: { type: 'password' },
+        email: { type: "email" },
+        password: { type: "password" },
       },
       async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) return null
         await dbConnect()
-        if (!credentials) return null
         const user = await UserModel.findOne({ email: credentials.email })
         if (user && bcrypt.compareSync(credentials.password, user.password)) {
           return {
@@ -30,33 +30,24 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   pages: {
-    signIn: '/signin',
-    newUser: '/register',
-    error: '/signin',
+    signIn: "/signin",
+    newUser: "/register",
+    error: "/signin",
   },
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user }) {
       if (user) {
         token.user = {
           _id: (user as any)._id,
-          email: user.email,
           name: user.name,
+          email: user.email,
           isAdmin: (user as any).isAdmin,
-        }
-      }
-      if (trigger === 'update' && session) {
-        token.user = {
-          ...(token.user as any),
-          email: session.user.email,
-          name: session.user.name,
         }
       }
       return token
     },
     async session({ session, token }) {
-      if (token) {
-        session.user = token.user as any
-      }
+      if (token?.user) session.user = token.user as any
       return session
     },
   },

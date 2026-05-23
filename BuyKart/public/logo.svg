@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" width="120" height="40">
-  <rect width="120" height="40" rx="6" fill="#2563eb"/>
-  <text x="12" y="27" font-family="Arial, sans-serif" font-weight="700" font-size="20" fill="white">Buy</text>
-  <text x="50" y="27" font-family="Arial, sans-serif" font-weight="400" font-size="20" fill="#bfdbfe">Kart</text>
-  <circle cx="106" cy="14" r="5" fill="none" stroke="#bfdbfe" stroke-width="1.5"/>
-  <path d="M100 22 L104 18 L112 18" stroke="#bfdbfe" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-</svg>

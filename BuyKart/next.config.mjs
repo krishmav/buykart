@@ -1,10 +1,8 @@
-/** @type {import('next').NextConfig} */
+/** @type {import("next").NextConfig} */
 const nextConfig = {
-  // Prevents mongoose & bcryptjs from being bundled into the Edge/Client runtime
-  serverExternalPackages: ['mongoose', 'bcryptjs'],
+  serverExternalPackages: ["mongoose", "bcryptjs"],
   images: {
-    remotePatterns: [],
+    unoptimized: true,
   },
 }
-
 export default nextConfig

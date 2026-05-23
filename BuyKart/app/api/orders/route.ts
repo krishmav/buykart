@@ -1,56 +1,45 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import dbConnect from '@/lib/dbConnect'
-import OrderModel, { OrderItem } from '@/lib/models/OrderModel'
-import ProductModel from '@/lib/models/ProductModel'
-import { round2 } from '@/lib/utils'
+import { NextRequest, NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import dbConnect from "@/lib/dbConnect"
+import OrderModel from "@/lib/models/OrderModel"
+import UserModel from "@/lib/models/UserModel"
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 
-const calcPrices = (orderItems: OrderItem[]) => {
-  const itemsPrice = round2(orderItems.reduce((acc, item) => acc + item.price * item.qty, 0))
-  const shippingPrice = round2(itemsPrice > 100 ? 0 : 10)
-  const taxPrice = round2(Number((0.15 * itemsPrice).toFixed(2)))
-  const totalPrice = round2(itemsPrice + shippingPrice + taxPrice)
-  return { itemsPrice, shippingPrice, taxPrice, totalPrice }
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.email)
+      return NextResponse.json({ message: "Not authenticated" }, { status: 401 })
+
+    await dbConnect()
+    const user = await UserModel.findOne({ email: session.user.email })
+    if (!user)
+      return NextResponse.json({ message: "User not found" }, { status: 404 })
+
+    const body = await req.json()
+    const order = new OrderModel({ ...body, user: user._id })
+    const saved = await order.save()
+    return NextResponse.json({ _id: saved._id.toString() }, { status: 201 })
+  } catch (err: any) {
+    return NextResponse.json({ message: err.message }, { status: 500 })
+  }
 }
 
-export async function POST(req: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session) {
-    return Response.json({ message: 'unauthorized' }, { status: 401 })
-  }
-  const user = session.user as any
+export async function GET() {
   try {
-    const payload = await req.json()
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.email)
+      return NextResponse.json({ message: "Not authenticated" }, { status: 401 })
+
     await dbConnect()
-    const dbProductPrices = await ProductModel.find(
-      { _id: { $in: payload.items.map((x: any) => x._id) } },
-      'price'
-    )
-    const dbOrderItems = payload.items.map((x: any) => ({
-      ...x,
-      product: x._id,
-      price: dbProductPrices.find((p: any) => p._id.toString() === x._id)?.price ?? x.price,
-      _id: undefined,
-    }))
-    const { itemsPrice, taxPrice, shippingPrice, totalPrice } = calcPrices(dbOrderItems)
-    const newOrder = new OrderModel({
-      items: dbOrderItems,
-      itemsPrice,
-      taxPrice,
-      shippingPrice,
-      totalPrice,
-      shippingAddress: payload.shippingAddress,
-      paymentMethod: payload.paymentMethod,
-      user: user._id,
-    })
-    const createdOrder = await newOrder.save()
-    return Response.json(
-      { message: 'Order has been created', order: createdOrder },
-      { status: 201 }
-    )
+    const user = await UserModel.findOne({ email: session.user.email })
+    const orders = await OrderModel.find({ user: user._id })
+      .sort({ createdAt: -1 })
+      .lean()
+    return NextResponse.json(orders)
   } catch (err: any) {
-    return Response.json({ message: err.message }, { status: 500 })
+    return NextResponse.json({ message: err.message }, { status: 500 })
   }
 }

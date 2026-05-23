@@ -1,7 +1,5 @@
 import dbConnect from "@/lib/dbConnect"
 import ProductModel from "@/lib/models/ProductModel"
-import UserModel from "@/lib/models/UserModel"
-import data from "@/lib/data"
 import { NextResponse } from "next/server"
 
 export const dynamic = "force-dynamic"
@@ -9,11 +7,8 @@ export const dynamic = "force-dynamic"
 export async function GET() {
   try {
     await dbConnect()
-    await UserModel.deleteMany()
-    await ProductModel.deleteMany()
-    await UserModel.insertMany(data.users)
-    await ProductModel.insertMany(data.products)
-    return NextResponse.json({ message: "Seeded successfully", count: data.products.length })
+    const products = await ProductModel.find({}).lean()
+    return NextResponse.json(products)
   } catch (err: any) {
     return NextResponse.json({ message: err.message }, { status: 500 })
   }

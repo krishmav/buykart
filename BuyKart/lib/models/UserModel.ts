@@ -1,32 +1,14 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose"
 
-export type User = {
-  _id: string
-  name: string
-  email: string
-  isAdmin: boolean
-}
-
-const UserSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      required: true,
-    },
-    isAdmin: { type: Boolean, required: true, default: false },
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    isAdmin: { type: Boolean, default: false },
   },
   { timestamps: true }
 )
 
-const UserModel = mongoose.models?.User || mongoose.model('User', UserSchema)
-
+const UserModel = mongoose.models.User || mongoose.model("User", userSchema)
 export default UserModel

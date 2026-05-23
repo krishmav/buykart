@@ -1,57 +1,24 @@
-import Providers from './Providers'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import './globals.css'
-import type { Metadata } from 'next'
-import { Poppins } from 'next/font/google'
-import DrawerButton from '@/components/DrawerButton'
-import Sidebar from '@/components/Sidebar'
-import Header from '@/components/header/Header'
-import BackToTop from '@/components/BackToTop'
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import SessionWrapper from "@/components/SessionWrapper"
+import { Toaster } from "react-hot-toast"
 
-const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'] })
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: 'BuyKart',
-  description: 'Your everyday online shopping store',
+  title: "ShopNext",
+  description: "Your everyday online shopping destination",
 }
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const session = await getServerSession(authOptions)
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={poppins.className}>
-        <Providers session={session}>
-          <div className="drawer">
-            <DrawerButton />
-            <div className="drawer-content">
-              <div className="min-h-screen flex flex-col">
-                <Header />
-                {children}
-                <BackToTop />
-                <footer className="footer footer-center p-6 bg-base-300 text-base-content mt-8">
-                  <div>
-                    <p className="font-semibold text-base">BuyKart</p>
-                    <p className="text-sm">© 2024 BuyKart — All rights reserved.</p>
-                  </div>
-                </footer>
-              </div>
-            </div>
-            <div className="drawer-side">
-              <label
-                htmlFor="my-drawer"
-                aria-label="close sidebar"
-                className="drawer-overlay"
-              ></label>
-              <Sidebar />
-            </div>
-          </div>
-        </Providers>
+      <body className={inter.className}>
+        <SessionWrapper>
+          {children}
+          <Toaster position="top-right" />
+        </SessionWrapper>
       </body>
     </html>
   )
