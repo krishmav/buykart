@@ -3,6 +3,8 @@ import UserModel from '@/lib/models/UserModel'
 import bcrypt from 'bcryptjs'
 import { NextRequest } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 export const POST = async (request: NextRequest) => {
   const { name, email, password } = await request.json()
 

@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import data from '@/lib/data'
 import ProductModel from '@/lib/models/ProductModel'
 
+export const dynamic = 'force-dynamic'
+
 export const GET = async (request: NextRequest) => {
   const { users, products } = data
   await dbConnect()

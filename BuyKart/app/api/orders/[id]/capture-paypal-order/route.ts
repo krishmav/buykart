@@ -3,6 +3,8 @@ import dbConnect from '@/lib/dbConnect'
 import OrderModel from '@/lib/models/OrderModel'
 import { paypal } from '@/lib/paypal'
 
+export const dynamic = 'force-dynamic'
+
 export const POST = auth(async (...request: any) => {
   const [req, { params }] = request
   if (!req.auth) {

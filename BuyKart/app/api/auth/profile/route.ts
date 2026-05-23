@@ -3,6 +3,8 @@ import dbConnect from '@/lib/dbConnect'
 import UserModel from '@/lib/models/UserModel'
 import bcrypt from 'bcryptjs'
 
+export const dynamic = 'force-dynamic'
+
 export const PUT = auth(async (req) => {
   if (!req.auth) {
     return Response.json({ message: 'Not authenticated' }, { status: 401 })

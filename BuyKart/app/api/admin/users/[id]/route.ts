@@ -2,6 +2,8 @@ import { auth } from '@/lib/auth'
 import dbConnect from '@/lib/dbConnect'
 import UserModel from '@/lib/models/UserModel'
 
+export const dynamic = 'force-dynamic'
+
 export const GET = auth(async (...args: any) => {
   const [req, { params }] = args
   if (!req.auth || !req.auth.user?.isAdmin) {

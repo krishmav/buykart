@@ -2,6 +2,8 @@ import dbConnect from '@/lib/dbConnect'
 import OrderModel from '@/lib/models/OrderModel'
 import { auth } from '@/lib/auth'
 
+export const dynamic = 'force-dynamic'
+
 export const GET = auth(async (req: any) => {
   if (!req.auth) {
     return Response.json(
