@@ -5,12 +5,12 @@ import UserModel from './models/UserModel'
 import NextAuth from 'next-auth'
 
 export const config = {
+  // ← This is the critical fix for Vercel: trusts the host header
+  trustHost: true,
   providers: [
     CredentialsProvider({
       credentials: {
-        email: {
-          type: 'email',
-        },
+        email: { type: 'email' },
         password: { type: 'password' },
       },
       async authorize(credentials) {
