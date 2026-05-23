@@ -1,9 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Correct key for Next.js 14 — keeps mongoose/bcrypt out of Edge bundles
-  experimental: {
-    serverComponentsExternalPackages: ['mongoose', 'bcryptjs'],
-  },
+  // Next.js 14.1+ renamed this from experimental.serverComponentsExternalPackages
+  // This MUST be at the top level — if it stays under experimental, mongoose and
+  // bcryptjs get bundled into the Edge middleware runtime, which has no Node.js
+  // module support, causing "Middleware Invocation Failed" (500) on every request.
+  serverExternalPackages: ['mongoose', 'bcryptjs'],
   images: {
     remotePatterns: [],
   },

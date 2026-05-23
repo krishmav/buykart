@@ -6,7 +6,8 @@ import NextAuth from 'next-auth'
 
 export const config = {
   trustHost: true,
-  secret: process.env.NEXTAUTH_SECRET,
+  // next-auth v5 prefers AUTH_SECRET; fall back to NEXTAUTH_SECRET for compatibility
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       credentials: {

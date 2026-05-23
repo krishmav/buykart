@@ -6,7 +6,8 @@ import type { NextAuthConfig } from 'next-auth'
 // The full auth (with DB access) lives in lib/auth.ts.
 const edgeConfig = {
   trustHost: true,
-  secret: process.env.NEXTAUTH_SECRET,
+  // next-auth v5 prefers AUTH_SECRET; fall back to NEXTAUTH_SECRET for compatibility
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   providers: [],
   callbacks: {
     authorized({ request, auth }: any) {
