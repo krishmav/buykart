@@ -18,8 +18,7 @@ export async function GET(
 
     await dbConnect()
     const user = await UserModel.findOne({ email: session.user.email })
-    const order = await OrderModel.findById(params.id).lean()
-
+    const order = await OrderModel.findById(params.id).lean() as any
     if (!order)
       return NextResponse.json({ message: "Order not found" }, { status: 404 })
 
